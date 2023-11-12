@@ -4,6 +4,8 @@ const {
     getAllMovies,
     getMovieById,
     storeMovie,
+    updateMovie,
+    deleteMovie,
 } = require('../services/movies.services');
 
 module.exports = {
@@ -28,7 +30,14 @@ module.exports = {
                     currentPage,
                     pages,
                 },
-                data: movies,
+                data: movies.map((movie) => {
+                    return {
+                        ...movie.dataValues,
+                        url: `${req.protocol}://${req.get(
+                            'host'
+                        )}/api/v1/movies/${movie.id}`,
+                    };
+                }),
             });
         } catch (error) {
             console.log(error);
@@ -76,8 +85,10 @@ module.exports = {
             const movie = await storeMovie(req.body, actors);
             return res.status(200).json({
                 ok: true,
-                message: "Película agregada con éxito",
-                url : `${req.protocol}://${req.get("host")}/api/v1/movies/${movie.id}`
+                message: 'Película agregada con éxito',
+                url: `${req.protocol}://${req.get('host')}/api/v1/movies/${
+                    movie.id
+                }`,
             });
         } catch (error) {
             console.log(error);
@@ -88,13 +99,39 @@ module.exports = {
             });
         }
     },
-    
 
+    update: async (req, res) => {
+        try {
+            const movieUpdated = await updateMovie(req.params.id, req.body);
+            return res.status(200).json({
+                ok: true,
+                message: 'Película actualizada con éxito',
+                data: movieUpdated,
+            });
+        } catch (error) {
+            console.log(error);
+            return res.status(error.status || 500).json({
+                ok: false,
+                status: error.status || 500,
+                error: error.message || 'Error en el servidor',
+            });
+        }
+    },
+    delete: async (req, res) => {
+        try {
+            await deleteMovie(req.params.id);
 
-
-
-
-
-    update: (req, res) => {},
-    delete: (req, res) => {},
+            return res.status(200).json({
+                ok: true,
+                message: 'Película eliminada con éxito',
+            });
+        } catch (error) {
+            console.log(error);
+            return res.status(error.status || 500).json({
+                ok: false,
+                status: error.status || 500,
+                error: error.message || 'Error en el servidor',
+            });
+        }
+    },
 };
