@@ -1,8 +1,10 @@
 const db = require('../database/models');
 
-const getAllMovies = async () => {
+const getAllMovies = async (limit, offset) => {
     try {
         const movies = await db.Movie.findAll({
+            limit,
+            offset,
             attributes: {
                 exclude: ['created_at', 'updated_at', 'genre_id'],
             },
@@ -20,12 +22,18 @@ const getAllMovies = async () => {
                 },
             ],
         });
-        return movies;
+        const count = await db.Movie.count();
+        // cantidad console.log('>>>>>>>', count);
+        // console.log('>>>>>>>', movies.length);
+        return {
+            movies,
+            count, // cantidad de elementos (películas)
+        };
     } catch (error) {
         console.log(error);
         throw {
-            status: 500,
-            message: error.message,
+            status: error.status || 500,
+            message: error.message || 'Error en el servicio',
         };
     }
 };
@@ -57,12 +65,46 @@ const getMovieById = async (id) => {
                 },
             ],
         });
+
+        if (!movie) {
+            throw {
+                status: 404,
+                message: 'No hay una película con ese ID',
+            };
+        }
+
         return movie;
     } catch (error) {
         console.log(error);
         throw {
             status: error.status || 500,
-            message: error.message,
+            message: error.message || 'Error en el servicio',
+        };
+    }
+};
+
+const storeMovie = async (dataMovie, actors) => {
+    try {
+        const newMovie = await db.Movie.create(dataMovie);
+        if (actors) {
+            const actorsDB = actors.map((actor) => {
+                return {
+                    movie_id: movie.id,
+                    actor_id: actor,
+                };
+            });
+
+            await db.Actor_Movie.bulkCreate(actorsDB, {
+                validate: true,
+            });
+        }
+
+        return await getMovieById(newMovie.id);
+    } catch (error) {
+        console.log(error);
+        throw {
+            status: error.status || 500,
+            message: error.message || 'Error en el servicio',
         };
     }
 };
@@ -70,4 +112,5 @@ const getMovieById = async (id) => {
 module.exports = {
     getAllMovies,
     getMovieById,
+    storeMovie,
 };
