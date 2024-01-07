@@ -10,10 +10,13 @@ const {
 
 module.exports = {
     index: async (req, res) => {
+        const { keyword } = req.query;
+
         try {
             const { count, movies } = await getAllMovies(
                 req.query.limit,
-                req.skip
+                req.skip,
+                keyword
             );
             const pagesCount = Math.ceil(count / req.query.limit); // cuantas páginas voy a obtener.
             const currentPage = req.query.page; // cual es la página actual
