@@ -1,36 +1,17 @@
-const { getGenreById, getAllGenres } = require('../services/genres.services');
-const paginate = require('express-paginate');
+const db = require('../database/models');
+const { getAllGenres, getGenreById } = require('../services/genres.services');
 
 module.exports = {
     index: async (req, res) => {
         try {
-            const { count, genres } = await getAllGenres(
-                req.query.limit,
-                req.skip
-            );
-            const pagesCount = Math.ceil(count / req.query.limit);
-            const currentPage = req.query.page;
-            const pages = paginate.getArrayPages(req)(
-                pagesCount,
-                pagesCount,
-                currentPage
-            );
+            const { genres } = await getAllGenres();
 
             return res.status(200).json({
                 ok: true,
                 meta: {
-                    pagesCount,
-                    currentPage,
-                    pages,
+                    total: genres.length,
                 },
-                data: genres.map((genre) => {
-                    return {
-                        ...genre.dataValues,
-                        url: `${req.protocol}://${req.get(
-                            'host'
-                        )}/api/v1/genres/${genre.id}`,
-                    };
-                }),
+                data: genres,
             });
         } catch (error) {
             console.log(error);

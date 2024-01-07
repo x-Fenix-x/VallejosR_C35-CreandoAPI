@@ -1,18 +1,12 @@
 const db = require('../database/models');
 
-const getAllGenres = async (limit, offset) => {
+const getAllGenres = async () => {
     try {
         const genres = await db.Genre.findAll({
-            limit,
-            offset,
-            attributes: {
-                exclude: ['created_at', 'updated_at', 'genre_id'],
-            },
+            order: [['name', 'ASC']],
         });
-        const count = await db.Genre.count();
         return {
             genres,
-            count,
         };
     } catch (error) {
         console.log(error);

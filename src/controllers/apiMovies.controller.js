@@ -92,6 +92,7 @@ module.exports = {
                 url: `${req.protocol}://${req.get('host')}/api/v1/movies/${
                     movie.id
                 }`,
+                data: movie,
             });
         } catch (error) {
             console.log(error);
